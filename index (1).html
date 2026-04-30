@@ -4,13 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Katz Gazette</title>
+  <!-- Loading screen so user sees something instantly -->
+  <style>
+    #loading {
+      position: fixed; inset: 0;
+      background: #f2ead8;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+      font-family: Georgia, serif;
+      z-index: 99999;
+      transition: opacity 0.5s;
+    }
+    #loading h1 { font-size: 2.5rem; color: #1c1209; margin: 0; }
+    #loading p  { font-size: 0.8rem; color: #7a6548; letter-spacing: 0.2em; text-transform: uppercase; margin: 0; }
+    body { margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <!-- Loading screen shown while React boots -->
+  <div id="loading">
+    <h1>Katz Gazette</h1>
+    <p>Loading...</p>
+  </div>
+  <div id="root"></div>
+
+  <!-- React + ReactDOM from CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel to compile JSX in browser -->
   <script src="https://unpkg.com/@babel/standalone@7.23.4/babel.min.js"></script>
-</head>
-<body style="margin:0;padding:0;">
-  <div id="root"></div>
-  <script type="text/babel" data-presets="react">
+
+  <script type="text/babel" data-presets="react,env">
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
@@ -1076,8 +1100,19 @@ function KatzGazetteFinal() {
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(KatzGazetteFinal));
+// Mount the app
+const domRoot = document.getElementById('root');
+const reactRoot = ReactDOM.createRoot(domRoot);
+reactRoot.render(React.createElement(KatzGazetteFinal));
+
+// Hide loading screen once React has rendered
+setTimeout(() => {
+  const loading = document.getElementById('loading');
+  if (loading) {
+    loading.style.opacity = '0';
+    setTimeout(() => loading.remove(), 500);
+  }
+}, 800);
   </script>
 </body>
 </html>
