@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Katz Gazette</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.4/babel.min.js"></script>
+</head>
+<body style="margin:0;padding:0;">
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
+
+  :root {
+    --paper:      #f2ead8;
+    --paper-dk:   #e8ddc4;
+    --paper-dkr:  #d9ccb0;
+    --ink:        #1c1209;
+    --ink-mid:    #2e1f0e;
+    --brown:      #5c3d1e;
+    --brown-lt:   #8b5e3c;
+    --red:        #8b1a1a;
+    --red-lt:     #a52020;
+    --gold:       #b8860b;
+    --gold-lt:    #d4a017;
+    --muted:      #7a6548;
+    --rule:       #c4b08a;
+    --rule-dk:    #a09070;
+    --white:      #faf6ee;
+    --tip-green:  #2a5c3f;
+    --tip-green-lt: #3a7a54;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Libre Baskerville', serif;
+    font-size: 14px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.7;
+  }
+
+  .playfair { font-family: 'Playfair Display', serif; }
+  .elite    { font-family: 'Special Elite', cursive; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-d1 { animation: fadeUp 0.8s ease forwards 0.1s; opacity: 0; }
+  .anim-d2 { animation: fadeUp 0.8s ease forwards 0.25s; opacity: 0; }
+  .anim-d3 { animation: fadeUp 0.8s ease forwards 0.4s; opacity: 0; }
+  .anim-d4 { animation: fadeUp 0.8s ease forwards 0.55s; opacity: 0; }
+  .anim-d5 { animation: fadeUp 0.8s ease forwards 0.7s; opacity: 0; }
+
+  .ornament { text-align: center; font-size: 1.2rem; color: var(--rule-dk); letter-spacing: 0.4em; margin: 0.5rem 0; }
+  .cat-label { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--red); }
+
+  /* ── PLACEHOLDER INSTRUCTION STYLE ── */
+  .fill-instruction {
+    display: block;
+    background: rgba(184,134,11,0.08);
+    border: 1px dashed var(--gold);
+    border-left: 3px solid var(--gold);
+    padding: 0.5rem 0.8rem;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.72rem;
+    color: var(--brown);
+    line-height: 1.6;
+    font-style: normal;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .fill-instruction strong { color: var(--red); }
+  .fill-tag {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'Special Elite', cursive;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    margin-bottom: 0.3rem;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: var(--ink);
+    border-bottom: 4px double var(--gold);
+  }
+  .nav-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.4rem 3rem;
+    border-bottom: 1px solid rgba(180,150,80,0.3);
+  }
+  .nav-top span { font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.18em; color: rgba(180,150,80,0.55); }
+  .nav-main { display: flex; align-items: center; padding: 0.6rem 3rem; }
+  .nav-logo-block { cursor: pointer; padding-right: 2rem; border-right: 1px solid rgba(180,150,80,0.3); }
+  .nav-logo-katz { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: var(--paper); letter-spacing: 0.06em; line-height: 1; }
+  .nav-logo-gazette { font-family: 'Special Elite', cursive; font-size: 0.62rem; letter-spacing: 0.3em; color: var(--gold-lt); text-transform: uppercase; line-height: 1; }
+  .nav-links-main { display: flex; list-style: none; flex: 1; justify-content: center; gap: 2.2rem; }
+  .nav-links-main a { font-family: 'Special Elite', cursive; font-size: 0.63rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(242,234,216,0.55); text-decoration: none; transition: color 0.2s; padding-bottom: 2px; }
+  .nav-links-main a:hover, .nav-links-main a.active { color: var(--gold-lt); border-bottom: 1px solid var(--gold-lt); }
+  .nav-cta { font-family: 'Special Elite', cursive; font-size: 0.63rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink); background: var(--gold-lt); border: none; padding: 0.5rem 1.2rem; cursor: pointer; transition: background 0.2s; }
+  .nav-cta:hover { background: #e8b520; }
+  .nav-tips-badge { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--tip-green-lt); margin-left: 0.3rem; }
+
+  /* ── HERO ── */
+  .hero { padding-top: 88px; background: var(--paper-dk); min-height: 100vh; position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(92,61,30,0.06) 1px, transparent 1px); background-size: 12px 12px; pointer-events: none; }
+  .hero-banner { background: var(--red); text-align: center; padding: 0.4rem; border-bottom: 2px solid var(--ink); border-top: 2px solid var(--ink); position: relative; z-index: 2; }
+  .hero-banner span { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--white); }
+  .hero-inner { display: grid; grid-template-columns: 1fr 2.2fr 1fr; gap: 0; padding: 3rem 3rem 0; position: relative; z-index: 2; align-items: start; min-height: calc(100vh - 160px); }
+
+  .hero-col-left { border-right: 1px solid var(--rule-dk); padding-right: 2rem; padding-top: 1rem; }
+  .sidebar-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brown); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--rule); }
+  .sidebar-item { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.8rem; font-family: 'Libre Baskerville', serif; font-size: 0.75rem; color: var(--ink-mid); line-height: 1.5; }
+  .sidebar-bullet { color: var(--red); flex-shrink: 0; margin-top: 2px; }
+  .sidebar-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; color: var(--paper-dkr); line-height: 1; text-align: center; margin: 1.5rem 0 0.2rem; }
+  .sidebar-num-label { font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); text-align: center; }
+
+  .hero-col-center { padding: 0 2.5rem; text-align: center; }
+  .hero-issue-line { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+  .hero-masthead { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 900; color: var(--ink); line-height: 0.9; letter-spacing: -0.01em; margin: 0.5rem 0; }
+  .hero-masthead .italic { font-style: italic; font-weight: 400; }
+  .hero-subtitle-banner { background: var(--ink); color: var(--paper); font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; padding: 0.4rem 1.5rem; display: inline-block; margin: 1rem 0; }
+  .hero-lede { font-family: 'Libre Baskerville', serif; font-size: 0.9rem; color: var(--ink-mid); line-height: 1.85; max-width: 460px; margin: 1rem auto; text-align: left; }
+  .hero-actions { display: flex; gap: 1rem; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+  .btn-catalogue { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.65rem 1.6rem; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-ink { background: var(--ink); color: var(--paper); }
+  .btn-ink:hover { background: var(--ink-mid); }
+  .btn-red { background: var(--red); color: var(--white); }
+  .btn-red:hover { background: var(--red-lt); }
+  .btn-ghost-ink { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn-ghost-ink:hover { background: rgba(28,18,9,0.05); }
+  .hero-illustration { margin: 1.5rem auto 0; width: 100%; max-width: 340px; aspect-ratio: 3/4; background: var(--paper-dkr); border: 2px solid var(--rule-dk); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .hero-illustration::before { content: ''; position: absolute; inset: 8px; border: 1px solid var(--rule); }
+  .illustration-figure { font-size: 7rem; filter: sepia(1) contrast(0.7) brightness(0.85); opacity: 0.5; }
+  .illustration-caption { position: absolute; bottom: 0; left: 0; right: 0; background: var(--ink); color: var(--paper); font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; text-align: center; padding: 0.4rem; }
+
+  .hero-col-right { border-left: 1px solid var(--rule-dk); padding-left: 2rem; padding-top: 1rem; }
+  .featured-box { border: 1px solid var(--rule-dk); padding: 1rem; margin-bottom: 1.2rem; background: var(--paper); position: relative; }
+  .featured-box-label { position: absolute; top: -0.6rem; left: 0.8rem; background: var(--paper); padding: 0 0.4rem; font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); }
+  .featured-box-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--ink); margin: 0.3rem 0 0.2rem; line-height: 1.3; }
+  .featured-box-house { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-bottom: 0.5rem; }
+  .featured-box-text { font-size: 0.75rem; color: var(--ink-mid); line-height: 1.65; }
+  .featured-box-score { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.8rem; color: var(--red); line-height: 1; margin-top: 0.6rem; }
+  .featured-box-verdict { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── TRUST STRIP ── */
+  .trust-strip { background: var(--ink); border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); padding: 0.8rem 3rem; display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap; }
+  .trust-item { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-lt); display: flex; align-items: center; gap: 0.5rem; }
+  .trust-item::before { content: '✦'; color: var(--red); }
+
+  /* ── CATALOGUE SECTION ── */
+  .cat-section { padding: 3.5rem 3rem; }
+  .cat-section-header { text-align: center; margin-bottom: 2.5rem; position: relative; }
+  .cat-section-header::before, .cat-section-header::after { content: ''; position: absolute; top: 50%; width: calc(50% - 140px); height: 1px; background: var(--rule-dk); }
+  .cat-section-header::before { left: 0; }
+  .cat-section-header::after { right: 0; }
+  .cat-section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.5rem); font-weight: 700; color: var(--ink); display: inline-block; padding: 0 1rem; }
+  .cat-section-sub { font-family: 'Special Elite', cursive; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 0.3rem; }
+
+  /* ── REVIEW CARDS ── */
+  .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--rule-dk); }
+  .review-card { padding: 1.8rem 1.5rem; border-right: 1px solid var(--rule-dk); background: var(--paper); transition: background 0.25s; cursor: pointer; position: relative; }
+  .review-card:last-child { border-right: none; }
+  .review-card:hover { background: var(--white); }
+  .review-card.featured-card { border-right: 2px solid var(--ink); }
+  .item-number { font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 0.8rem; }
+  .item-icon { font-size: 2rem; margin-bottom: 0.8rem; display: block; filter: sepia(0.5) contrast(0.9); }
+  .item-cat { font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 0.4rem; }
+  .item-name { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); line-height: 1.2; margin-bottom: 0.2rem; }
+  .featured-card .item-name { font-size: 1.6rem; }
+  .item-house { font-size: 0.75rem; color: var(--muted); font-style: italic; margin-bottom: 0.8rem; }
+  .item-excerpt { font-size: 0.8rem; color: var(--ink-mid); line-height: 1.7; margin-bottom: 1rem; }
+  .item-divider { border: none; border-top: 1px solid var(--rule); margin: 1rem 0; }
+  .item-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .item-score { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--red); line-height: 1; }
+  .item-score-label { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .item-verdict { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.3rem 0.7rem; border: 1px solid var(--ink); color: var(--ink); }
+  .verdict-buy { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* ── HOW IT WORKS ── */
+  .how-section { background: var(--ink); padding: 3.5rem 3rem; color: var(--paper); }
+  .how-header-text { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.5rem); font-weight: 700; color: var(--paper); text-align: center; margin-bottom: 0.3rem; }
+  .how-header-sub { font-family: 'Special Elite', cursive; font-size: 0.62rem; letter-spacing: 0.2em; color: var(--gold-lt); text-align: center; margin-bottom: 2.5rem; }
+  .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .how-col { padding: 2rem; border-right: 1px solid rgba(180,150,80,0.2); text-align: center; }
+  .how-col:last-child { border-right: none; }
+  .how-num { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 900; color: rgba(212,160,23,0.2); line-height: 1; margin-bottom: 0.5rem; }
+  .how-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; color: var(--paper); margin-bottom: 0.8rem; }
+  .how-body { font-size: 0.8rem; color: rgba(242,234,216,0.6); line-height: 1.8; }
+  .how-ornament { color: var(--gold-lt); font-size: 1.2rem; margin-bottom: 0.8rem; }
+
+  /* ── GUIDE SECTION ── */
+  .guide-section { background: var(--paper-dk); padding: 3.5rem 3rem; border-top: 3px double var(--ink); border-bottom: 3px double var(--ink); }
+  .guide-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  .guide-card { background: var(--paper); border: 1px solid var(--rule-dk); padding: 1.5rem; cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
+  .guide-card:hover { background: var(--white); }
+  .guide-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--red); opacity: 0; transition: opacity 0.2s; }
+  .guide-card:hover::before { opacity: 1; }
+  .guide-card-num { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900; color: var(--paper-dkr); line-height: 1; float: right; margin-left: 1rem; }
+  .guide-card-tag { font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 0.5rem; }
+  .guide-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.5rem; line-height: 1.3; }
+  .guide-card-desc { font-size: 0.78rem; color: var(--ink-mid); line-height: 1.7; }
+  .guide-card-cta { display: inline-block; margin-top: 0.8rem; font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--brown); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ── ABOUT ── */
+  .about-section { padding: 3.5rem 3rem; }
+  .about-grid { display: grid; grid-template-columns: 1fr 1.8fr; gap: 4rem; align-items: start; }
+  .about-portrait { border: 2px solid var(--rule-dk); aspect-ratio: 3/4; background: var(--paper-dkr); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .about-portrait::before { content: ''; position: absolute; inset: 10px; border: 1px solid var(--rule); }
+  .portrait-initials { font-family: 'Playfair Display', serif; font-size: 6rem; font-weight: 900; font-style: italic; color: rgba(92,61,30,0.15); }
+  .portrait-caption { position: absolute; bottom: 0; left: 0; right: 0; background: var(--ink); color: var(--paper); font-family: 'Special Elite', cursive; font-size: 0.5rem; letter-spacing: 0.15em; text-align: center; padding: 0.35rem; text-transform: uppercase; }
+  .about-pull-quote { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-style: italic; font-weight: 400; color: var(--ink); border-left: 3px solid var(--red); padding-left: 1.2rem; margin-bottom: 1.5rem; line-height: 1.5; }
+  .about-body p { font-size: 0.88rem; color: var(--ink-mid); line-height: 1.85; margin-bottom: 1rem; }
+  .about-stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+  .about-stat-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--red); line-height: 1; }
+  .about-stat-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+
+  /* ── BRANDS ── */
+  .brands-section { background: var(--paper-dk); border-top: 1px solid var(--rule-dk); border-bottom: 1px solid var(--rule-dk); padding: 2rem 3rem; text-align: center; }
+  .brands-row { display: flex; align-items: center; justify-content: center; gap: 3.5rem; flex-wrap: wrap; margin-top: 1rem; }
+  .brand-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; color: var(--rule-dk); transition: color 0.2s; cursor: default; letter-spacing: 0.05em; }
+  .brand-name:hover { color: var(--brown-lt); }
+
+  /* ── WORK ── */
+  .work-section { padding: 3.5rem 3rem; background: var(--ink); color: var(--paper); }
+  .work-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: start; }
+  .work-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 900; color: var(--paper); line-height: 1.1; margin-bottom: 0.5rem; }
+  .work-title em { font-style: italic; color: var(--gold-lt); }
+  .work-body { font-size: 0.85rem; color: rgba(242,234,216,0.65); line-height: 1.85; margin-bottom: 2rem; }
+  .offerings { display: flex; flex-direction: column; gap: 1px; background: rgba(180,150,80,0.2); }
+  .offering-row { background: var(--ink-mid); padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; cursor: default; }
+  .offering-row:hover { background: #241808; }
+  .offering-title-px { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--paper); }
+  .offering-desc-px { font-size: 0.72rem; color: rgba(242,234,216,0.5); margin-top: 0.15rem; }
+  .offering-arrow { color: var(--gold-lt); font-size: 1rem; }
+  .contact-form-vintage { background: var(--paper); padding: 2rem; border: 2px solid var(--gold); position: relative; }
+  .contact-form-vintage::before { content: 'CONTACT FORM'; position: absolute; top: -0.7rem; left: 50%; transform: translateX(-50%); background: var(--paper); padding: 0 0.8rem; font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--brown); }
+  .vint-label { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--brown); display: block; margin-bottom: 0.3rem; }
+  .vint-input, .vint-textarea { width: 100%; background: var(--white); border: 1px solid var(--rule-dk); border-bottom: 2px solid var(--ink); padding: 0.6rem 0.8rem; color: var(--ink); font-family: 'Libre Baskerville', serif; font-size: 0.85rem; outline: none; resize: none; transition: border-color 0.2s; margin-bottom: 1rem; }
+  .vint-input:focus, .vint-textarea:focus { border-color: var(--red); border-bottom-color: var(--red); }
+  .vint-input::placeholder, .vint-textarea::placeholder { color: var(--rule-dk); font-style: italic; }
+
+  /* ── NEWSLETTER ── */
+  .newsletter-section { padding: 3rem; background: var(--paper-dk); border-top: 3px double var(--ink); text-align: center; }
+  .newsletter-section h2 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--ink); margin-bottom: 0.5rem; }
+  .newsletter-section p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; font-style: italic; }
+  .nl-form-vintage { display: flex; gap: 0; max-width: 420px; margin: 0 auto; }
+  .nl-input-vintage { flex: 1; background: var(--paper); border: 1px solid var(--ink); border-right: none; padding: 0.7rem 1rem; color: var(--ink); font-family: 'Libre Baskerville', serif; font-size: 0.85rem; font-style: italic; outline: none; }
+  .nl-input-vintage::placeholder { color: var(--muted); }
+
+  /* ── FOOTER ── */
+  footer { background: var(--ink); padding: 3rem; }
+  .footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 2.5rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(180,150,80,0.2); }
+  .footer-brand-name { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: var(--paper); margin-bottom: 0.3rem; }
+  .footer-tagline { font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-lt); margin-bottom: 1rem; }
+  .footer-body { font-size: 0.75rem; color: rgba(242,234,216,0.45); line-height: 1.75; }
+  .footer-col-title-px { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-lt); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(180,150,80,0.2); }
+  .footer-links-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .footer-links-list a { font-size: 0.8rem; color: rgba(242,234,216,0.5); text-decoration: none; font-style: italic; transition: color 0.2s; }
+  .footer-links-list a:hover { color: var(--gold-lt); }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(180,150,80,0.3); }
+
+  /* ── PAGE SHELL ── */
+  .page-shell { padding-top: 88px; min-height: 100vh; }
+  .page-hero-vintage { padding: 3rem 3rem 2.5rem; background: var(--paper-dk); border-bottom: 3px double var(--ink); display: flex; align-items: flex-end; justify-content: space-between; }
+  .page-hero-vintage h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 900; color: var(--ink); line-height: 0.95; }
+  .page-hero-vintage h1 em { font-style: italic; color: var(--red); }
+  .filter-row-vintage { padding: 0.8rem 3rem; border-bottom: 1px solid var(--rule); display: flex; gap: 0.5rem; flex-wrap: wrap; background: var(--paper); }
+  .filter-btn-vintage { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.3rem 0.9rem; border: 1px solid var(--rule-dk); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .filter-btn-vintage.active, .filter-btn-vintage:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .reviews-page-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .guide-page-grid { padding: 2.5rem 3rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  .guide-page-card { background: var(--paper); border: 1px solid var(--rule-dk); padding: 1.8rem; cursor: pointer; transition: background 0.2s; }
+  .guide-page-card:hover { background: var(--white); }
+  .about-page-grid { padding: 3rem; display: grid; grid-template-columns: 260px 1fr; gap: 4rem; }
+  .values-list-vintage { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1px; }
+  .value-item-vintage { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem 0; border-bottom: 1px solid var(--rule); }
+  .value-bullet { color: var(--red); font-size: 0.8rem; flex-shrink: 0; margin-top: 2px; }
+  .value-text-vintage { font-size: 0.83rem; color: var(--ink-mid); line-height: 1.6; }
+
+  /* ══════════════════════════════════════════
+     TIPS PAGE STYLES
+  ══════════════════════════════════════════ */
+  .tips-page { padding-top: 88px; min-height: 100vh; background: var(--paper); }
+
+  .tips-hero {
+    background: var(--tip-green);
+    padding: 3rem 3rem 2.5rem;
+    border-bottom: 3px double var(--gold);
+    position: relative; overflow: hidden;
+  }
+  .tips-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 14px 14px;
+    pointer-events: none;
+  }
+  .tips-hero-inner { position: relative; z-index: 2; }
+  .tips-hero-label { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-lt); margin-bottom: 0.8rem; }
+  .tips-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 900; color: var(--white); line-height: 0.95; }
+  .tips-hero h1 em { font-style: italic; color: var(--gold-lt); }
+  .tips-hero-sub { font-size: 0.9rem; color: rgba(250,246,238,0.7); margin-top: 1rem; max-width: 560px; font-style: italic; line-height: 1.7; }
+
+  .tips-body { padding: 3rem; }
+  .tips-intro-box {
+    background: var(--paper-dk);
+    border: 1px solid var(--rule-dk);
+    border-left: 4px solid var(--tip-green);
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+  }
+  .tips-intro-box p { font-size: 0.88rem; color: var(--ink-mid); line-height: 1.85; }
+  .tips-intro-box strong { color: var(--tip-green); }
+
+  /* CHECKLIST SECTIONS */
+  .checklist-section { margin-bottom: 3rem; }
+  .checklist-section-header {
+    display: flex; align-items: center; gap: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 1.5rem;
+  }
+  .checklist-section-icon { font-size: 1.4rem; }
+  .checklist-section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+  .checklist-section-count { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--muted); margin-left: auto; }
+
+  .checklist-items { display: flex; flex-direction: column; gap: 0; }
+  .checklist-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    transition: background 0.15s;
+    align-items: start;
+    cursor: pointer;
+  }
+  .checklist-item:hover { background: var(--white); }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item.checked { background: rgba(42,92,63,0.04); }
+
+  .check-box {
+    width: 20px; height: 20px;
+    border: 2px solid var(--rule-dk);
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .check-box.checked { background: var(--tip-green); border-color: var(--tip-green); }
+  .check-mark { color: var(--white); font-size: 0.7rem; line-height: 1; }
+
+  .check-content {}
+  .check-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.95rem; color: var(--ink); margin-bottom: 0.3rem; line-height: 1.3; }
+  .check-title.done { text-decoration: line-through; color: var(--muted); }
+  .check-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.65; }
+  .check-tip {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tip-green);
+    background: rgba(42,92,63,0.08);
+    padding: 0.15rem 0.5rem;
+    border: 1px solid rgba(42,92,63,0.2);
+  }
+
+  /* RESOURCES GRID */
+  .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule-dk); margin-top: 1rem; }
+  .resource-card {
+    background: var(--paper);
+    padding: 1.5rem;
+    transition: background 0.2s;
+  }
+  .resource-card:hover { background: var(--white); }
+  .resource-icon { font-size: 1.8rem; margin-bottom: 0.8rem; display: block; }
+  .resource-category { font-family: 'Special Elite', cursive; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 0.4rem; }
+  .resource-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; color: var(--ink); margin-bottom: 0.4rem; line-height: 1.3; }
+  .resource-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.65; margin-bottom: 0.8rem; }
+  .resource-link {
+    display: inline-block;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tip-green);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .resource-free { display: inline-block; background: var(--tip-green); color: var(--white); font-family: 'Special Elite', cursive; font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.1rem 0.4rem; margin-left: 0.4rem; vertical-align: middle; }
+  .resource-paid { display: inline-block; background: var(--brown); color: var(--white); font-family: 'Special Elite', cursive; font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.1rem 0.4rem; margin-left: 0.4rem; vertical-align: middle; }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    background: var(--paper-dk);
+    border: 1px solid var(--rule-dk);
+    border-left: 4px solid var(--tip-green);
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+    display: flex; align-items: center; gap: 2rem;
+  }
+  .progress-label { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--tip-green); white-space: nowrap; }
+  .progress-bar-wrap { flex: 1; background: var(--rule); height: 12px; position: relative; }
+  .progress-bar-fill { height: 100%; background: var(--tip-green); transition: width 0.5s ease; }
+  .progress-count { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; color: var(--tip-green); white-space: nowrap; }
+
+  /* TIPS TIPS BOX */
+  .pro-tip-box {
+    background: var(--ink);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    display: flex; gap: 1.2rem; align-items: flex-start;
+  }
+  .pro-tip-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .pro-tip-label { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-lt); margin-bottom: 0.3rem; }
+  .pro-tip-text { font-size: 0.82rem; color: rgba(242,234,216,0.75); line-height: 1.75; }
+`;
+
+// ── Checklist Data ────────────────────────────────────────────────────────
+
+const CHECKLIST_SECTIONS = [
+  {
+    icon: '🏗️',
+    title: 'Step 1 — Foundation & Setup',
+    items: [
+      { id: 'c1', title: 'Choose a domain name', desc: 'Pick something short, memorable, and relevant to your brand. Your domain is your first impression. Tip: use .com whenever possible. Check availability at Namecheap or GoDaddy.', tip: 'e.g. KatzGazette.com' },
+      { id: 'c2', title: 'Select a hosting platform', desc: 'For beginners, start with Squarespace, Wix, or Webflow — no coding required. If you want full control and can vibe-code, use Vercel or Netlify to deploy your JSX files for free.', tip: 'Recommended: Webflow or Vercel' },
+      { id: 'c3', title: 'Set up a professional email address', desc: 'Create an email like editor@katzgazette.com. Never use a Gmail address when contacting brands — it signals you are not serious. Google Workspace costs ~$6/month.', tip: 'e.g. editor@yourdomain.com' },
+      { id: 'c4', title: 'Connect your domain to your host', desc: 'Follow your hosting platform\'s DNS setup instructions. This typically takes 24–48 hours to propagate. Most platforms walk you through this step by step.', tip: 'Allow 24-48 hrs to go live' },
+    ],
+  },
+  {
+    icon: '📄',
+    title: 'Step 2 — Pages & Content',
+    items: [
+      { id: 'c5', title: 'Write your Homepage headline & tagline', desc: 'Your headline should tell a visitor in one sentence who you are, who you serve, and why they should trust you. Example: "Honest Men\'s Fragrance Reviews — Helping Her Choose With Confidence."', tip: 'Be specific. Vague headlines lose visitors.' },
+      { id: 'c6', title: 'Write your About page', desc: 'Tell your story honestly. Why do you review fragrance? What qualifies you? What is your promise to the reader? Keep it to 3–4 short paragraphs. Use first person. Make it human.', tip: 'Include a photo of yourself if possible' },
+      { id: 'c7', title: 'Publish your first 3 reviews before launch', desc: 'Do not launch an empty site. Have at least 3 published reviews live on day one so visitors — and brands — can see your work immediately.', tip: 'Quality over quantity on day one' },
+      { id: 'c8', title: 'Create a Work With Me / Media Kit page', desc: 'This is what brands look for. Include: who your audience is, what content you produce, how to contact you, and what partnerships you offer. Keep it professional and concise.', tip: 'Add your audience demographic & monthly reach' },
+      { id: 'c9', title: 'Build one Gift Guide before launch', desc: 'Gift guides attract search traffic and demonstrate editorial value to brands. Create one themed guide (e.g. "Best Colognes Under $100") with 5–7 picks and publish it on launch day.', tip: 'Gift guides rank well on Google' },
+    ],
+  },
+  {
+    icon: '🎨',
+    title: 'Step 3 — Design & Branding',
+    items: [
+      { id: 'c10', title: 'Choose and lock in your colour palette', desc: 'Pick 2–3 colours and use them consistently across every page. Use a tool like Coolors.co to generate a palette. Consistency = professionalism. Inconsistency = amateur.', tip: 'Use Coolors.co to build your palette' },
+      { id: 'c11', title: 'Select and apply 2 fonts sitewide', desc: 'One display font for headlines, one readable font for body copy. Google Fonts is free. Stick to these two fonts everywhere — do not mix more than two.', tip: 'Google Fonts is free and easy to use' },
+      { id: 'c12', title: 'Create a simple logo', desc: 'You do not need to spend $500 on a logo. Use Canva (free) to create a clean wordmark. Your site name, your chosen font, your accent colour. Done. You can upgrade later.', tip: 'Canva.com — free logo maker' },
+      { id: 'c13', title: 'Ensure your site looks good on mobile', desc: 'Over 60% of your visitors will arrive on a phone. Preview your site on a mobile device before you launch. If anything looks broken or crowded, fix it first.', tip: 'Test on iPhone AND Android if possible' },
+    ],
+  },
+  {
+    icon: '🔍',
+    title: 'Step 4 — Trust & Credibility',
+    items: [
+      { id: 'c14', title: 'Add a clear editorial policy', desc: 'Brands need to see that you have standards. Write a short statement explaining that your reviews are independent, your scores are not for sale, and how you handle gifted products. One paragraph is enough.', tip: 'Honesty is your most valuable asset' },
+      { id: 'c15', title: 'Set up Google Analytics', desc: 'You need traffic data to show brands. Install Google Analytics (free) on day one. When a brand asks "what are your monthly numbers?" you will have an answer.', tip: 'analytics.google.com — free' },
+      { id: 'c16', title: 'Create a Privacy Policy page', desc: 'Required by law if you collect any data (email addresses, analytics, etc.). Use a free generator like Termly.io or PrivacyPolicyGenerator.info to create one in under 10 minutes.', tip: 'Required for GDPR compliance' },
+      { id: 'c17', title: 'Add an FTC Disclosure statement', desc: 'Legally required in the US if you receive gifted products or earn commissions. Add a brief disclosure to your site footer and to any review involving gifted or sponsored content.', tip: 'Required by FTC guidelines' },
+    ],
+  },
+  {
+    icon: '📣',
+    title: 'Step 5 — Launch & Growth',
+    items: [
+      { id: 'c18', title: 'Set up an email newsletter', desc: 'Start collecting email subscribers from day one. Use Mailchimp (free up to 500 subscribers) or Beehiiv. A newsletter is your most direct line to your audience — and one of your most valuable assets to show brands.', tip: 'Mailchimp is free to start' },
+      { id: 'c19', title: 'Create one social media account for your brand', desc: 'Choose ONE platform and commit to it. Instagram is ideal for fragrance content. Do not spread yourself thin across five platforms when starting out. Consistency on one > scattered presence on many.', tip: 'Instagram or TikTok recommended for fragrance' },
+      { id: 'c20', title: 'Write and schedule your first 4 weeks of content', desc: 'Plan ahead: one review per week, one gift guide per month, one social post every 3 days. Content consistency is what separates hobbyists from brands worth working with.', tip: 'Use Notion or Google Sheets to plan content' },
+      { id: 'c21', title: 'Submit your site to Google Search Console', desc: 'This tells Google your site exists and helps your pages appear in search results. Go to search.google.com/search-console, add your site, and submit your sitemap. Free, takes 10 minutes.', tip: 'Helps your reviews appear on Google' },
+      { id: 'c22', title: 'Reach out to your first brand', desc: 'Once you have 5+ published reviews, craft a short, professional pitch email. Introduce yourself, describe your audience, and propose a specific collaboration. Keep it under 200 words.', tip: 'Start with smaller indie fragrance brands' },
+    ],
+  },
+];
+
+const RESOURCES = [
+  { icon: '🌐', category: 'Hosting', name: 'Webflow', desc: 'Drag-and-drop site builder with beautiful design output. No coding needed. Best for beginners who want professional results.', url: 'webflow.com', free: false },
+  { icon: '⚡', category: 'Deployment', name: 'Vercel', desc: 'Deploy your JSX/React site for free in minutes. Pairs perfectly with the prototypes built here. Best free hosting available.', url: 'vercel.com', free: true },
+  { icon: '🎨', category: 'Design', name: 'Canva', desc: 'Free design tool for logos, social graphics, and media kit documents. No design experience necessary.', url: 'canva.com', free: true },
+  { icon: '📧', category: 'Email Marketing', name: 'Mailchimp', desc: 'Free email newsletter platform for up to 500 subscribers. Collect reader emails and send weekly review digests to grow your audience.', url: 'mailchimp.com', free: true },
+  { icon: '🔍', category: 'SEO', name: 'Google Search Console', desc: 'Submit your site to Google so your reviews appear in search results. Free and essential. Set this up on launch day.', url: 'search.google.com/search-console', free: true },
+  { icon: '📊', category: 'Analytics', name: 'Google Analytics', desc: 'Track how many visitors your site gets, where they come from, and what they read. The data brands will ask for. Free forever.', url: 'analytics.google.com', free: true },
+  { icon: '🎯', category: 'Fonts', name: 'Google Fonts', desc: 'Thousands of free, professional fonts for your site. Search by style, pair fonts, and copy the embed code directly into your site.', url: 'fonts.google.com', free: true },
+  { icon: '🎨', category: 'Colour', name: 'Coolors.co', desc: 'Generate beautiful colour palettes in seconds. Lock in colours you like and shuffle the rest. Free and incredibly useful for non-designers.', url: 'coolors.co', free: true },
+  { icon: '📜', category: 'Legal', name: 'Termly.io', desc: 'Generate a Privacy Policy, Terms of Service, and Cookie Policy in minutes. Required if you collect emails or run analytics on your site.', url: 'termly.io', free: true },
+  { icon: '📝', category: 'Content Planning', name: 'Notion', desc: 'Free workspace for planning your content calendar, drafting reviews, and organising your editorial schedule. Used by professional publishers worldwide.', url: 'notion.so', free: true },
+  { icon: '📸', category: 'Photography', name: 'Unsplash', desc: 'Free high-quality stock photography with no attribution required. Use for placeholder imagery while you build your own photo library.', url: 'unsplash.com', free: true },
+  { icon: '🤝', category: 'Brand Outreach', name: 'Hunter.io', desc: 'Find the correct email address for PR and marketing contacts at fragrance brands. Essential for your outreach once you are ready to approach companies.', url: 'hunter.io', free: false },
+];
+
+// ── Components ────────────────────────────────────────────────────────────
+
+function ReviewCard({ r }) {
+  return (
+    <div className={`review-card ${r.featured ? 'featured-card' : ''}`}>
+      <div className="item-number">No. {String(r.id).padStart(3, '0')}</div>
+      <span className="item-icon">{r.icon}</span>
+      <div className="item-cat">{r.cat}</div>
+      <div className="item-name playfair">{r.name}</div>
+      <div className="item-house">{r.house}</div>
+      <p className="item-excerpt">{r.excerpt}</p>
+      <hr className="item-divider" />
+      <div className="item-bottom">
+        <div><div className="item-score">{r.score}</div><div className="item-score-label">out of ten</div></div>
+        <div className={`item-verdict elite ${r.verdictClass}`}>{r.verdict}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── TIPS PAGE ─────────────────────────────────────────────────────────────
+
+function TipsPage() {
+  const [checked, setChecked] = useState({});
+
+  const toggle = (id) => setChecked(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const total = CHECKLIST_SECTIONS.reduce((acc, s) => acc + s.items.length, 0);
+  const done = Object.values(checked).filter(Boolean).length;
+  const pct = Math.round((done / total) * 100);
+
+  return (
+    <div className="tips-page">
+      {/* Hero */}
+      <div className="tips-hero">
+        <div className="tips-hero-inner">
+          <div className="tips-hero-label elite">Your Beginner's Guide</div>
+          <h1 className="playfair">Build It<br /><em>The Right Way</em></h1>
+          <p className="tips-hero-sub">
+            Everything you need to launch the Katz Gazette properly — from choosing a domain name
+            to reaching out to your first brand. Work through each checklist item in order.
+            Tick each box as you complete it.
+          </p>
+        </div>
+      </div>
+
+      <div className="tips-body">
+
+        {/* Intro */}
+        <div className="tips-intro-box">
+          <p>This checklist is designed specifically for <strong>complete beginners</strong>. You do not need to complete every item before launching — but you should complete Steps 1 and 2 in full, and have at least 3 reviews published before you make the site public. The rest can be built gradually over your first 60 days.</p>
+        </div>
+
+        {/* Progress */}
+        <div className="progress-section">
+          <div className="progress-label elite">Your Progress</div>
+          <div className="progress-bar-wrap">
+            <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="progress-count playfair">{done} / {total}</div>
+        </div>
+
+        {/* Checklists */}
+        {CHECKLIST_SECTIONS.map((section) => (
+          <div key={section.title} className="checklist-section">
+            <div className="checklist-section-header">
+              <span className="checklist-section-icon">{section.icon}</span>
+              <span className="checklist-section-title playfair">{section.title}</span>
+              <span className="checklist-section-count elite">
+                {section.items.filter(i => checked[i.id]).length} of {section.items.length} complete
+              </span>
+            </div>
+            <div className="checklist-items" style={{ border: '1px solid var(--rule-dk)' }}>
+              {section.items.map((item) => (
+                <div
+                  key={item.id}
+                  className={`checklist-item ${checked[item.id] ? 'checked' : ''}`}
+                  onClick={() => toggle(item.id)}
+                >
+                  <div className={`check-box ${checked[item.id] ? 'checked' : ''}`}>
+                    {checked[item.id] && <span className="check-mark">✓</span>}
+                  </div>
+                  <div className="check-content">
+                    <div className={`check-title playfair ${checked[item.id] ? 'done' : ''}`}>{item.title}</div>
+                    <div className="check-desc">{item.desc}</div>
+                    <span className="check-tip elite">{item.tip}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Pro tip */}
+        <div className="pro-tip-box">
+          <span className="pro-tip-icon">💡</span>
+          <div>
+            <div className="pro-tip-label elite">Important Reminder</div>
+            <p className="pro-tip-text">Do not wait until everything is perfect before you launch. A live site with 3 honest reviews and a clear Work With Me page will do more for your credibility than a perfect site that never goes public. Launch imperfectly. Improve every week.</p>
+          </div>
+        </div>
+
+        {/* Resources */}
+        <div className="checklist-section">
+          <div className="checklist-section-header">
+            <span className="checklist-section-icon">📚</span>
+            <span className="checklist-section-title playfair">Recommended Resources</span>
+            <span className="checklist-section-count elite">{RESOURCES.filter(r => r.free).length} free · {RESOURCES.filter(r => !r.free).length} paid</span>
+          </div>
+          <div className="resources-grid">
+            {RESOURCES.map(r => (
+              <div key={r.name} className="resource-card">
+                <span className="resource-icon">{r.icon}</span>
+                <div className="resource-category elite">{r.category}</div>
+                <div className="resource-name playfair">
+                  {r.name}
+                  {r.free
+                    ? <span className="resource-free">Free</span>
+                    : <span className="resource-paid">Paid</span>
+                  }
+                </div>
+                <p className="resource-desc">{r.desc}</p>
+                <a className="resource-link elite" href={`https://${r.url}`} target="_blank" rel="noreferrer">Visit {r.url} →</a>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Final tip */}
+        <div className="pro-tip-box" style={{ marginTop: '1rem', background: 'var(--tip-green)' }}>
+          <span className="pro-tip-icon">🎯</span>
+          <div>
+            <div className="pro-tip-label elite">Your Next Step</div>
+            <p className="pro-tip-text">Once you have completed Steps 1–3 above, return to the main prototype and begin replacing the placeholder instructions throughout each page with your real content. Start with the Homepage headline — that single sentence is the most important copy on your entire site.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ── Review data ───────────────────────────────────────────────────────────
+
+const REVIEWS = [
+  { id: 1, featured: true, icon: '🍶', cat: 'Woody Oriental', name: '[Your Review Title]', house: '[Brand / House Name]', score: '–.–', verdict: '[Verdict]', verdictClass: '', excerpt: 'Write 2–3 sentences summarising your honest opinion of this fragrance. Focus on how it smells, who it suits, and whether it is worth the money. Write as if you are speaking directly to the woman buying it as a gift.' },
+  { id: 2, icon: '🌊', cat: '[Fragrance Family]', name: '[Your Review Title]', house: '[Brand / House Name]', score: '–.–', verdict: '[Verdict]', verdictClass: '', excerpt: 'Write 2–3 sentences summarising your honest opinion. Mention longevity, projection, and the occasion it suits best. Plain language only — no jargon.' },
+  { id: 3, icon: '🪵', cat: '[Fragrance Family]', name: '[Your Review Title]', house: '[Brand / House Name]', score: '–.–', verdict: '[Verdict]', verdictClass: '', excerpt: 'Write 2–3 sentences summarising your honest opinion. Conclude with a clear gifting context: who is this for, and when should she buy it?' },
+];
+
+const GUIDES = [
+  { num: 'I',   tag: '[Occasion / Theme]', title: '[Your Gift Guide Title — e.g. Best Colognes for a First Date]', desc: 'Write 1–2 sentences describing what this guide covers and who it is for. Keep it specific to the occasion or theme you have chosen.' },
+  { num: 'II',  tag: '[Occasion / Theme]', title: '[Your Gift Guide Title — e.g. Top Fragrances Under $100]', desc: 'Write 1–2 sentences describing what this guide covers and who it is for. Mention the budget range or the type of man it suits.' },
+  { num: 'III', tag: '[Occasion / Theme]', title: '[Your Gift Guide Title]', desc: 'Write 1–2 sentences describing this guide. Think seasonally — winter warmth, summer freshness, holiday gifting, etc.' },
+  { num: 'IV',  tag: '[Occasion / Theme]', title: '[Your Gift Guide Title]', desc: 'Write 1–2 sentences describing this guide. Consider personality types — the adventurous man, the classic dresser, the minimalist.' },
+];
+
+// ── Pages ─────────────────────────────────────────────────────────────────
+
+function HomePage({ setPage }) {
+  return (
+    <div>
+      <div className="hero">
+        <div className="hero-banner">
+          <span>[Write a short tagline here — e.g. Est. 2025 · The Independent Review of Men's Fragrance · Honest. Authoritative. Unsponsored.]</span>
+        </div>
+        <div className="hero-inner">
+          {/* Left sidebar */}
+          <div className="hero-col-left">
+            <div className="sidebar-title elite">In This Issue</div>
+            <span className="fill-instruction"><strong>TO DO:</strong> List 4 short article or review titles that are currently published on your site. These act as a table of contents for new visitors. Keep each one under 10 words.</span>
+            {['[Review Title #1]', '[Review Title #2]', '[Gift Guide Title]', '[Editorial or Tips Article]'].map((item, i) => (
+              <div key={i} className="sidebar-item">
+                <span className="sidebar-bullet">◆</span>
+                <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>{item}</span>
+              </div>
+            ))}
+            <hr style={{ border: 'none', borderTop: '1px solid var(--rule)', margin: '1.5rem 0' }} />
+            <span className="fill-instruction"><strong>TO DO:</strong> Replace these numbers with your real stats once you have them. Until then, leave them blank or use modest, honest figures.</span>
+            <div className="sidebar-num playfair">—</div>
+            <div className="sidebar-num-label elite">Fragrances Reviewed</div>
+            <div className="sidebar-num playfair">—</div>
+            <div className="sidebar-num-label elite">Monthly Readers</div>
+            <div className="sidebar-num playfair">0</div>
+            <div className="sidebar-num-label elite">Paid Sponsors</div>
+          </div>
+
+          {/* Center editorial */}
+          <div className="hero-col-center">
+            <div className="hero-issue-line anim-d1 elite">[Vol. & Issue Number] — [Your Site Tagline]</div>
+            <div className="ornament anim-d1">— ✦ —</div>
+            <h1 className="hero-masthead anim-d2 playfair">
+              KATZ<br /><span className="italic">Gazette</span>
+            </h1>
+            <span className="fill-instruction anim-d3"><strong>TO DO — HERO TAGLINE:</strong> Write a single sentence (10–15 words) that tells a first-time visitor exactly who you are and who you serve. Example: "Honest Men's Fragrance Reviews — Helping Her Choose With Confidence."</span>
+            <div className="hero-subtitle-banner anim-d3 elite">[Your 10-word tagline goes here]</div>
+            <span className="fill-instruction anim-d4"><strong>TO DO — OPENING PARAGRAPH:</strong> Write 3–4 sentences explaining who the Katz Gazette is for, what you review, and why your opinion can be trusted. Address the woman buying fragrance for her man directly. Be warm, honest, and confident. No jargon.</span>
+            <div className="hero-lede anim-d4" style={{ textAlign: 'left', fontStyle: 'italic', color: 'var(--muted)' }}>
+              [Your opening paragraph — 3 to 4 sentences. Speak directly to the woman purchasing fragrance for the man in her life. Tell her what you do, why you do it honestly, and why she can trust your verdicts.]
+            </div>
+            <div className="ornament anim-d4">· · ·</div>
+            <div className="hero-actions anim-d5">
+              <button className="btn-catalogue btn-ink" onClick={() => setPage('reviews')}>Browse Reviews</button>
+              <button className="btn-catalogue btn-red" onClick={() => setPage('guides')}>Gift Guides</button>
+              <button className="btn-catalogue btn-ghost-ink" onClick={() => setPage('work')}>Work With Us</button>
+            </div>
+            <div className="hero-illustration anim-d5">
+              <div className="illustration-figure">🧴</div>
+              <div className="illustration-caption elite">[Replace with a real photo or product image]</div>
+            </div>
+          </div>
+
+          {/* Right column — featured reviews */}
+          <div className="hero-col-right">
+            <span className="fill-instruction"><strong>TO DO — FEATURED BOXES:</strong> Fill in one box per published review. Add the fragrance name, house, a 2-sentence summary, your score out of 10, and your verdict (Buy / Skip / Consider).</span>
+            {['Editor\'s Pick', 'Highly Commended', 'Gift of the Month'].map((label, i) => (
+              <div key={label} className="featured-box">
+                <div className="featured-box-label elite">{label}</div>
+                <div className="featured-box-title playfair">[Fragrance Name]</div>
+                <div className="featured-box-house">[Brand] · [Fragrance Family]</div>
+                <p className="featured-box-text">[2-sentence summary of why you recommend this fragrance. Focus on who it suits and the occasion it is best for.]</p>
+                <div className="featured-box-score">–.–</div>
+                <div className="featured-box-verdict elite">Verdict: [Buy / Skip / Consider]</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Trust strip */}
+      <div className="trust-strip">
+        <span className="fill-instruction" style={{ color: 'var(--gold)' }}><strong>TO DO:</strong> Replace these four items with your real editorial promises — e.g. "No Paid Placements. Ever." and "X Fragrances Blind-Tested."</span>
+      </div>
+      <div className="trust-strip">
+        {['[Your Promise #1]', '[Your Promise #2]', '[Your Promise #3]', '[Your Promise #4]'].map(t => (
+          <div key={t} className="trust-item elite" style={{ fontStyle: 'italic', opacity: 0.6 }}>{t}</div>
+        ))}
+      </div>
+
+      {/* How it works */}
+      <div className="how-section">
+        <p className="how-header-sub elite">Our Method</p>
+        <h2 className="how-header-text playfair">How Every Review is Conducted</h2>
+        <div className="ornament" style={{ color: 'rgba(180,150,80,0.3)', marginBottom: '2rem' }}>— ✦ —</div>
+        <div className="how-grid">
+          {[
+            { n: '01', icon: '⚖️', title: '[Step Name — e.g. We Test Blind]', body: '[Write 2–3 sentences explaining this step of your review process. Be specific. How exactly do you evaluate a fragrance? What do you look for?]' },
+            { n: '02', icon: '📖', title: '[Step Name — e.g. We Translate]', body: '[Write 2–3 sentences. What do you do to make fragrance accessible to readers who are not experts? How do you explain complex terms?]' },
+            { n: '03', icon: '✍️', title: '[Step Name — e.g. We Recommend]', body: '[Write 2–3 sentences. What does your reader receive at the end of every review? A score? A verdict? A gifting context? Explain your output clearly.]' },
+          ].map(({ n, icon, title, body }) => (
+            <div key={n} className="how-col">
+              <div className="how-num playfair">{n}</div>
+              <div className="how-ornament">{icon}</div>
+              <div className="how-title playfair">{title}</div>
+              <p className="how-body">{body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Reviews */}
+      <div className="cat-section">
+        <div className="cat-section-header">
+          <div className="cat-label elite">Latest Verdicts</div>
+          <h2 className="cat-section-title playfair">Recent Reviews from the Archive</h2>
+          <div className="cat-section-sub elite">Fill in each card below with a real published review</div>
+        </div>
+        <div className="review-grid">
+          {REVIEWS.slice(0, 3).map(r => <ReviewCard key={r.id} r={r} />)}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <button className="btn-catalogue btn-ghost-ink" onClick={() => setPage('reviews')}>View All Reviews</button>
+        </div>
+      </div>
+
+      {/* Gift Guides */}
+      <div className="guide-section">
+        <div className="cat-section-header">
+          <div className="cat-label elite">Gift Guides</div>
+          <h2 className="cat-section-title playfair">Curated by Occasion & Character</h2>
+          <div className="cat-section-sub elite">Replace each card title and description with your real guide titles</div>
+        </div>
+        <div className="guide-grid">
+          {GUIDES.slice(0, 4).map(g => (
+            <div key={g.num} className="guide-card" onClick={() => setPage('guides')}>
+              <div className="guide-card-num playfair">{g.num}</div>
+              <div className="guide-card-tag elite">{g.tag}</div>
+              <div className="guide-card-title playfair">{g.title}</div>
+              <p className="guide-card-desc">{g.desc}</p>
+              <span className="guide-card-cta elite">Read the Full Guide →</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* About */}
+      <div className="about-section">
+        <div className="about-grid">
+          <div className="about-portrait">
+            <div className="portrait-initials">KG</div>
+            <div className="portrait-caption elite">[Replace with your photo]</div>
+          </div>
+          <div>
+            <div className="cat-label elite" style={{ marginBottom: '0.5rem' }}>About the Publication</div>
+            <span className="fill-instruction"><strong>TO DO — PULL QUOTE:</strong> Write one memorable sentence that captures your editorial promise. This is your mission in a single line. Make it personal and direct.</span>
+            <div className="about-pull-quote playfair">"[Write one memorable sentence that captures why you started the Katz Gazette and what you promise your readers.]"</div>
+            <div className="about-body">
+              <span className="fill-instruction"><strong>TO DO — ABOUT TEXT:</strong> Write 3 short paragraphs. Paragraph 1: What problem does the Katz Gazette solve? Paragraph 2: How do you review — what is your process? Paragraph 3: Who is this publication for?</span>
+              <p style={{ fontStyle: 'italic', color: 'var(--muted)' }}>[Paragraph 1: Describe the problem your site solves. Why does the Katz Gazette exist?]</p>
+              <p style={{ fontStyle: 'italic', color: 'var(--muted)' }}>[Paragraph 2: Describe your review process briefly. How do you test fragrances? What makes your approach different?]</p>
+              <p style={{ fontStyle: 'italic', color: 'var(--muted)' }}>[Paragraph 3: Describe your reader. Who is the Katz Gazette written for, and what do you want them to walk away with?]</p>
+            </div>
+            <div style={{ marginTop: '1.5rem' }}>
+              <button className="btn-catalogue btn-ghost-ink" onClick={() => setPage('about')}>Read Our Full Mission Statement</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Brands */}
+      <div className="brands-section">
+        <div className="cat-label elite">Houses We Have Reviewed</div>
+        <span className="fill-instruction" style={{ maxWidth: 500, margin: '0.5rem auto 1rem', display: 'block', textAlign: 'center' }}><strong>TO DO:</strong> Replace these with the real names of fragrance houses you have reviewed.</span>
+        <div className="brands-row">
+          {['[House 1]', '[House 2]', '[House 3]', '[House 4]', '[House 5]', '[House 6]'].map(b => (
+            <div key={b} className="brand-name playfair" style={{ fontStyle: 'normal', opacity: 0.5 }}>{b}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* Newsletter */}
+      <div className="newsletter-section">
+        <div className="ornament">— ✦ —</div>
+        <h2 className="playfair">[Newsletter Headline — e.g. Subscribe to the Gazette]</h2>
+        <p>[Write one sentence telling readers what they will receive and how often. e.g. One honest fragrance review, delivered every week. No spam.]</p>
+        <div className="nl-form-vintage">
+          <input className="nl-input-vintage" placeholder="Your email address..." type="email" />
+          <button className="btn-catalogue btn-ink">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewsPage() {
+  const [active, setActive] = useState('All');
+  const filters = ['All', 'Woody', 'Fresh', 'Oriental', 'Citrus', 'Under $100', 'Luxury'];
+  return (
+    <div className="page-shell">
+      <div className="page-hero-vintage">
+        <div>
+          <div className="cat-label elite" style={{ marginBottom: '0.5rem' }}>The Archive</div>
+          <h1 className="playfair">[Your Reviews Page Headline]<br /><em>[Your Subheadline]</em></h1>
+          <span className="fill-instruction" style={{ marginTop: '0.8rem' }}><strong>TO DO:</strong> Write a 1-sentence description of what your archive contains and what makes your reviews trustworthy.</span>
+        </div>
+      </div>
+      <div className="filter-row-vintage">
+        {filters.map(f => (
+          <button key={f} className={`filter-btn-vintage ${active === f ? 'active' : ''}`} onClick={() => setActive(f)}>{f}</button>
+        ))}
+      </div>
+      <div className="reviews-page-grid">
+        {REVIEWS.map(r => <ReviewCard key={r.id} r={r} />)}
+      </div>
+    </div>
+  );
+}
+
+function GuidesPage() {
+  return (
+    <div className="page-shell">
+      <div className="page-hero-vintage">
+        <div>
+          <div className="cat-label elite" style={{ marginBottom: '0.5rem' }}>Gift Guides</div>
+          <h1 className="playfair">[Gift Guides Headline]<br /><em>[Gift Guides Subheadline]</em></h1>
+          <span className="fill-instruction" style={{ marginTop: '0.8rem' }}><strong>TO DO:</strong> Write 1 sentence summarising your gift guides section. Who are these guides for, and what will they help her accomplish?</span>
+        </div>
+      </div>
+      <div className="guide-page-grid">
+        {GUIDES.map(g => (
+          <div key={g.num} className="guide-page-card">
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <div className="guide-card-tag elite">{g.tag}</div>
+              <div className="playfair" style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--paper-dkr)', lineHeight: 1 }}>{g.num}</div>
+            </div>
+            <div className="guide-card-title playfair" style={{ fontSize: '1.3rem' }}>{g.title}</div>
+            <p className="guide-card-desc">{g.desc}</p>
+            <span className="guide-card-cta elite">Read the Full Guide →</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AboutPage() {
+  return (
+    <div className="page-shell">
+      <div className="page-hero-vintage">
+        <div>
+          <div className="cat-label elite" style={{ marginBottom: '0.5rem' }}>About</div>
+          <h1 className="playfair">[About Page Headline]<br /><em>[Your Subheadline]</em></h1>
+        </div>
+      </div>
+      <div className="about-page-grid">
+        <div className="about-portrait" style={{ height: 360 }}>
+          <div className="portrait-initials">KG</div>
+          <div className="portrait-caption elite">[Add your photo here]</div>
+        </div>
+        <div>
+          <span className="fill-instruction"><strong>TO DO — PULL QUOTE:</strong> Write one powerful sentence that defines your editorial promise. This is the first thing a brand manager or new reader will read. Make it count.</span>
+          <div className="about-pull-quote playfair">"[Your mission in one sentence — honest, confident, and personal.]"</div>
+          <span className="fill-instruction"><strong>TO DO — YOUR STORY:</strong> Write 3 paragraphs. (1) Why did you start the Katz Gazette — what frustrated you about existing fragrance content? (2) What is your review process — how do you test and score fragrances? (3) Who is your audience — describe the woman you are writing for and what you want her to walk away knowing.</span>
+          <div className="values-list-vintage" style={{ marginTop: '1.5rem' }}>
+            <span className="fill-instruction"><strong>TO DO — YOUR PROMISES:</strong> Replace each item below with a specific editorial commitment. These are your non-negotiables — the rules you will never break. Examples: "No paid placements" or "Every fragrance purchased at full retail price."</span>
+            {['[Editorial Promise #1 — e.g. No paid placements, ever]', '[Editorial Promise #2 — e.g. Every fragrance purchased at full retail]', '[Editorial Promise #3 — e.g. Plain language in every review]', '[Editorial Promise #4 — e.g. Real-world testing, minimum 12 hours]'].map(v => (
+              <div key={v} className="value-item-vintage">
+                <span className="value-bullet">◆</span>
+                <span className="value-text-vintage" style={{ fontStyle: 'italic', color: 'var(--muted)' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkPage() {
+  return (
+    <div className="page-shell">
+      <div className="work-section" style={{ paddingTop: '5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <div className="cat-label elite" style={{ color: 'var(--gold-lt)' }}>Brand Partnerships</div>
+          <div className="ornament" style={{ color: 'rgba(180,150,80,0.3)' }}>— ✦ —</div>
+          <h2 className="work-title playfair" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)', textAlign: 'center' }}>
+            Work With<br />the <em>Gazette</em>
+          </h2>
+        </div>
+        <div className="work-grid">
+          <div>
+            <span className="fill-instruction" style={{ color: 'var(--gold)', borderColor: 'var(--gold-lt)', background: 'rgba(212,160,23,0.08)' }}><strong>TO DO — BRAND PITCH:</strong> Write 3–4 sentences describing your audience to a brand. Include: their gender, age range, what they are shopping for, and why they trust your recommendations. Be specific — vague audience descriptions do not convert.</span>
+            <p className="work-body" style={{ marginBottom: '1.5rem', fontStyle: 'italic', opacity: 0.6 }}>[Describe your audience here as if you are pitching to a brand marketing manager. Who reads the Katz Gazette? Why do they trust you? What purchasing decisions are they making?]</p>
+            <div style={{ fontFamily: "'Special Elite'", fontSize: '0.62rem', letterSpacing: '0.2em', color: 'var(--gold-lt)', marginBottom: '1rem', textTransform: 'uppercase' }}>What We Offer</div>
+            <span className="fill-instruction" style={{ color: 'var(--gold)', borderColor: 'var(--gold-lt)', background: 'rgba(212,160,23,0.08)' }}><strong>TO DO:</strong> List the specific partnership types you are offering. You can start with Product Review only and add more as you grow.</span>
+            <div className="offerings">
+              {['Product Review', 'Gift Guide Feature', 'Newsletter Placement', 'Social Content'].map(o => (
+                <div key={o} className="offering-row">
+                  <div>
+                    <div className="offering-title-px playfair">{o}</div>
+                    <div className="offering-desc-px">[Write 1 sentence describing exactly what this partnership delivers to the brand.]</div>
+                  </div>
+                  <span className="offering-arrow">→</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="contact-form-vintage">
+              <span className="fill-instruction"><strong>TO DO — CONTACT FORM:</strong> Once live, connect this form to a real email using a service like Formspree (free) or your hosting platform's built-in form handler. Every brand inquiry should land directly in your inbox.</span>
+              <div style={{ marginTop: '1rem' }}>
+                <label className="vint-label">Brand or House Name</label>
+                <input className="vint-input" placeholder="e.g. Maison de Parfum..." />
+              </div>
+              <div>
+                <label className="vint-label">Your Name</label>
+                <input className="vint-input" placeholder="First and family name..." />
+              </div>
+              <div>
+                <label className="vint-label">Email Address</label>
+                <input className="vint-input" type="email" placeholder="your@address.com..." />
+              </div>
+              <div>
+                <label className="vint-label">Details of Your Product</label>
+                <textarea className="vint-textarea" rows={4} placeholder="Please describe the product you wish us to consider..." />
+              </div>
+              <button className="btn-catalogue btn-ink" style={{ width: '100%', padding: '0.85rem', textAlign: 'center', display: 'block' }}>Submit Enquiry</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Root ──────────────────────────────────────────────────────────────────
+
+function KatzGazetteFinal() {
+  const [page, setPage] = useState('home');
+  useEffect(() => { window.scrollTo(0, 0); }, [page]);
+
+  const pages = { home: HomePage, reviews: ReviewsPage, guides: GuidesPage, about: AboutPage, work: WorkPage, tips: TipsPage };
+  const Page = pages[page] || HomePage;
+
+  return (
+    <>
+      <style>{styles}</style>
+
+      <nav>
+        <div className="nav-top">
+          <span className="nav-top-left elite">The Katz Gazette — Vol. I</span>
+          <span className="nav-top-right elite">Men's Fragrance — Independently Reviewed</span>
+        </div>
+        <div className="nav-main">
+          <div className="nav-logo-block" onClick={() => setPage('home')}>
+            <div className="nav-logo-katz">KATZ</div>
+            <div className="nav-logo-gazette">Gazette</div>
+          </div>
+          <ul className="nav-links-main">
+            {[['Reviews', 'reviews'], ['Gift Guides', 'guides'], ['About', 'about']].map(([label, p]) => (
+              <li key={p}>
+                <a href="#" className={page === p ? 'active' : ''} onClick={e => { e.preventDefault(); setPage(p); }}>{label}</a>
+              </li>
+            ))}
+            <li>
+              <a href="#" className={page === 'tips' ? 'active' : ''} onClick={e => { e.preventDefault(); setPage('tips'); }}
+                style={{ color: page === 'tips' ? 'var(--tip-green-lt)' : 'var(--tip-green-lt)', opacity: page === 'tips' ? 1 : 0.8 }}>
+                Tips ✦
+              </a>
+            </li>
+          </ul>
+          <button className="nav-cta elite" onClick={() => setPage('work')}>Work With Us</button>
+        </div>
+      </nav>
+
+      <Page setPage={setPage} />
+
+      <footer>
+        <div className="footer-top">
+          <div>
+            <div className="footer-brand-name playfair">Katz Gazette</div>
+            <div className="footer-tagline elite">Men's Fragrance — Independently Reviewed</div>
+            <p className="footer-body">[Write 2–3 sentences describing the Katz Gazette for your footer. Include your mission and your editorial promise.]</p>
+          </div>
+          {[
+            { title: 'Navigate', links: [['Reviews', 'reviews'], ['Gift Guides', 'guides'], ['About', 'about'], ['Work With Us', 'work'], ['Tips', 'tips']] },
+            { title: 'Categories', links: [['Woody & Warm', '#'], ['Fresh & Citrus', '#'], ['Oriental & Spicy', '#'], ['Luxury Houses', '#']] },
+            { title: 'Connect', links: [['Instagram', '#'], ['Newsletter', '#'], ['Contact', '#']] },
+          ].map(col => (
+            <div key={col.title}>
+              <div className="footer-col-title-px elite">{col.title}</div>
+              <ul className="footer-links-list">
+                {col.links.map(([label, href]) => (
+                  <li key={label}>
+                    <a href={href} onClick={e => { if (href !== '#') { e.preventDefault(); setPage(href); } }}>{label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="footer-bottom elite">
+          <span>© 2025 Katz Gazette</span>
+          <span>✦</span>
+          <span>[Your tagline]</span>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(KatzGazetteFinal));
+  </script>
+</body>
+</html>
